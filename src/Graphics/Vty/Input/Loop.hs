@@ -26,7 +26,6 @@ import Control.Concurrent.STM
 import Control.Exception (mask, try, SomeException)
 import Lens.Micro hiding ((<>~))
 import Lens.Micro.Mtl
-import Lens.Micro.TH
 import Control.Monad (when, mzero, forM_)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State (StateT(..), evalStateT)
@@ -66,14 +65,30 @@ data Input = Input
     , _inputDebug :: Maybe Handle
     }
 
-makeLenses ''Input
+eventChannel :: Lens' Input (TChan Event) 
+eventChannel f x = fmap (\y -> x{_eventChannel = y}) (f $ _eventChannel x)
+{-# INLINE eventChannel #-}
+
+configRef :: Lens' Input (IORef Config) 
+configRef f x = fmap (\y -> x{_configRef = y}) (f $ _configRef x)
+{-# INLINE configRef #-}
+
+inputDebug :: Lens' Input (Maybe Handle) 
+inputDebug f x = fmap (\y -> x{_inputDebug = y}) (f $ _inputDebug x)
+{-# INLINE inputDebug #-}
 
 data InputBuffer = InputBuffer
     { _ptr :: Ptr Word8
     , _size :: Int
     }
 
-makeLenses ''InputBuffer
+ptr :: Lens' InputBuffer (Ptr Word8)
+ptr f x = fmap (\y -> x{_ptr = y}) (f $ _ptr x)
+{-# INLINE ptr #-}
+
+size :: Lens' InputBuffer Int
+size f x = fmap (\y -> x{_size = y}) (f $ _size x)
+{-# INLINE size #-}
 
 data InputState = InputState
     { _unprocessedBytes :: String
@@ -82,7 +97,22 @@ data InputState = InputState
     , _classifier :: String -> KClass
     }
 
-makeLenses ''InputState
+unprocessedBytes :: Lens' InputState String
+unprocessedBytes f input = fmap (\y -> input{_unprocessedBytes = y}) (f $ _unprocessedBytes input)
+{-# INLINE unprocessedBytes #-}
+
+appliedConfig :: Lens' InputState Config
+appliedConfig f input = fmap (\y -> input{_appliedConfig = y}) (f $ _appliedConfig input)
+{-# INLINE appliedConfig #-}
+
+inputBuffer :: Lens' InputState InputBuffer
+inputBuffer f input = fmap (\y -> input{_inputBuffer = y}) (f $ _inputBuffer input)
+{-# INLINE inputBuffer #-}
+
+classifier :: Lens' InputState (String -> KClass)
+classifier f input = fmap (\y -> input{_classifier = y}) (f $ _classifier input)
+{-# INLINE classifier #-}
+
 
 type InputM a = StateT InputState (ReaderT Input IO) a
 

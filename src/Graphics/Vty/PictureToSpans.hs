@@ -16,7 +16,6 @@ import Graphics.Vty.Span
 
 import Lens.Micro
 import Lens.Micro.Mtl
-import Lens.Micro.TH
 import Control.Monad.Reader
 import Control.Monad.State.Strict hiding ( state )
 import Control.Monad.ST.Strict
@@ -53,14 +52,42 @@ data BlitState = BlitState
     , _remainingRows :: Int
     }
 
-makeLenses ''BlitState
+columnOffset :: Lens' BlitState Int
+columnOffset f x = fmap (\y -> x{_columnOffset = y}) (f $ _columnOffset x)
+{-# INLINE columnOffset #-}
+
+rowOffset :: Lens' BlitState Int
+rowOffset f x = fmap (\y -> x{_rowOffset = y}) (f $ _rowOffset x)
+{-# INLINE rowOffset #-}
+
+skipColumns :: Lens' BlitState Int
+skipColumns f x = fmap (\y -> x{_skipColumns = y}) (f $ _skipColumns x)
+{-# INLINE skipColumns #-}
+
+skipRows :: Lens' BlitState Int
+skipRows f x = fmap (\y -> x{_skipRows = y}) (f $ _skipRows x)
+{-# INLINE skipRows #-}
+
+remainingColumns :: Lens' BlitState Int
+remainingColumns f x = fmap (\y -> x{_remainingColumns = y}) (f $ _remainingColumns x)
+{-# INLINE remainingColumns #-}
+
+remainingRows :: Lens' BlitState Int
+remainingRows f x = fmap (\y -> x{_remainingRows = y}) (f $ _remainingRows x)
+{-# INLINE remainingRows #-}
 
 data BlitEnv s = BlitEnv
     { _region :: DisplayRegion
     , _mrowOps :: MRowOps s
     }
 
-makeLenses ''BlitEnv
+region :: Lens' (BlitEnv s) DisplayRegion
+region f x = fmap (\y -> x{_region = y}) (f $ _region x)
+{-# INLINE region #-}
+
+mrowOps :: Lens' (BlitEnv s) (MRowOps s)
+mrowOps f x = fmap (\y -> x{_mrowOps = y}) (f $ _mrowOps x)
+{-# INLINE mrowOps #-}
 
 type BlitM s a = ReaderT (BlitEnv s) (StateT BlitState (ST s)) a
 
